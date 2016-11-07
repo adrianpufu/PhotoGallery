@@ -8,12 +8,16 @@ using System.Web;
 using System.Web.Mvc;
 using PhotoGallery.DAL;
 using PhotoGallery.Models;
+using System.IO;
+using System.Configuration;
+using System.Data.SqlClient;
 
 namespace PhotoGallery.Controllers
 {
     public class PhotosController : Controller
     {
         private GalleryContext db = new GalleryContext();
+        private SqlConnection con;
 
         // GET: Photos
         public ActionResult Index()
@@ -45,19 +49,19 @@ namespace PhotoGallery.Controllers
         // POST: Photos/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "ID,Name,Description,Path")] Photo photo)
-        {
-            if (ModelState.IsValid)
-            {
-                db.Photos.Add(photo);
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
+       // [HttpPost]
+       // [ValidateAntiForgeryToken]
+       // public ActionResult Create([Bind(Include = "ID,Name,Description,Path")] Photo photo)
+       // {
+         //   if (ModelState.IsValid)
+         //   {
+         //       db.Photos.Add(photo);
+         //       db.SaveChanges();
+          //      return RedirectToAction("Index");
+          //  }
 
-            return View(photo);
-        }
+          //  return View(photo);
+       // }
 
         // GET: Photos/Edit/5
         public ActionResult Edit(int? id)
@@ -123,6 +127,29 @@ namespace PhotoGallery.Controllers
                 db.Dispose();
             }
             base.Dispose(disposing);
+        }
+        //post photos/saveImage
+        [HttpPost]
+        public ActionResult SaveImage(string description,string name)
+        {
+            try
+            {
+                if (System.Web.HttpContext.Current.Request.Files.AllKeys.Any())
+                {
+                    var pic = System.Web.HttpContext.Current.Request.Files["HelpSectionImages"];
+                    HttpPostedFileBase filebase = new HttpPostedFileWrapper(pic);
+                   // var fileName = Path.GetFileName(filebase.FileName);
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(filebase.FileName);
+                    var path = Path.Combine(Server.MapPath("~/Images"), fileName);
+                    filebase.SaveAs(path);
+                    var db = new GalleryContext();
+                    db.Photos.Add(new Photo { Name = name, Description = description, Path = path });
+                    db.SaveChanges();
+                    return Json("Photo was saved.");
+                }
+                else { return Json("No File Saved."); }
+            }
+            catch (Exception ex) { return Json("Error While Saving."); }
         }
     }
 }
