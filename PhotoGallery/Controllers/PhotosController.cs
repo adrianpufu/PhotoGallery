@@ -17,12 +17,40 @@ namespace PhotoGallery.Controllers
     public class PhotosController : Controller
     {
         private GalleryContext db = new GalleryContext();
-        private SqlConnection con;
 
         // GET: Photos
-        public ActionResult Index()
+        public ActionResult Index(IEnumerable<Photo> photos)
         {
-            return View(db.Photos.ToList());
+            if(photos==null)
+                return Index(10, 1);
+            return View(photos);
+        }
+        private int PageNumber = 0;
+        //POST: /Index
+        [HttpPost]
+        public ActionResult Index(int PageSize, int PageNumber)
+        {
+            var page = 1;
+            var photos = db.Photos.ToList();
+            if (PageNumber != 0)
+                page = PageNumber;
+            ViewBag.totalpages = Math.Ceiling((double)photos.Count() / PageSize);
+            ViewBag.currentpage = page;
+            ViewBag.pagesize = PageSize;
+            var photolist = photos.Skip((page - 1) * PageSize).Take(PageSize);
+            return Index(photolist);
+        }
+        public ActionResult Pagination(int PageSize, int PageNumber)
+        {
+            var page = 1;
+            var photos = db.Photos.ToList();
+            if (PageNumber != 0)
+                page = PageNumber;
+            ViewBag.totalpages = Math.Ceiling((double)photos.Count() / PageSize);
+            ViewBag.currentpage = page;
+            ViewBag.pagesize = PageSize;
+            var photolist = photos.Skip((page - 1) * PageSize).Take(PageSize);
+            return Index(photolist);
         }
 
         // GET: Photos/Details/5
@@ -49,19 +77,19 @@ namespace PhotoGallery.Controllers
         // POST: Photos/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
-       // [HttpPost]
-       // [ValidateAntiForgeryToken]
-       // public ActionResult Create([Bind(Include = "ID,Name,Description,Path")] Photo photo)
-       // {
-         //   if (ModelState.IsValid)
-         //   {
-         //       db.Photos.Add(photo);
-         //       db.SaveChanges();
-          //      return RedirectToAction("Index");
-          //  }
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public ActionResult Create([Bind(Include = "ID,Name,Description,Path")] Photo photo)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        db.Photos.Add(photo);
+        //        db.SaveChanges();
+        //        return RedirectToAction("Index");
+        //    }
 
-          //  return View(photo);
-       // }
+        //    return View(photo);
+        //}
 
         // GET: Photos/Edit/5
         public ActionResult Edit(int? id)
@@ -142,7 +170,7 @@ namespace PhotoGallery.Controllers
                     var fileName = Guid.NewGuid().ToString() + Path.GetExtension(filebase.FileName);
                     var path = Path.Combine(Server.MapPath("~/Images"), fileName);
                     filebase.SaveAs(path);
-                    var db = new GalleryContext();
+                    //var db = new GalleryContext();
                     db.Photos.Add(new Photo { Name = name, Description = description, Path = path });
                     db.SaveChanges();
                     return Json("Photo was saved.");
@@ -151,5 +179,18 @@ namespace PhotoGallery.Controllers
             }
             catch (Exception ex) { return Json("Error While Saving."); }
         }
+        // post /PageSize
+        //[HttpPost]
+        //public ActionResult PageSize(int PageSize,int PageNumber)
+        //{
+        //    var page = 1;
+        //    var photos = db.Photos.ToList();
+        //    if (PageNumber != 0)
+        //        page = PageNumber;
+        //    var TotalPages = Math.Ceiling((double)photos.Count() / PageSize);
+        //    var photolist = photos.Skip((page - 1) * PageSize).Take(PageSize);
+
+        //    return View(Index(photolist));
+        //}
     }
 }

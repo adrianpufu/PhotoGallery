@@ -3,9 +3,20 @@
 @{
     ViewBag.Title = "Index";
 }
-
-<h2>Index</h2>
-
+<style>
+    .inline{
+        display:inline-block;
+    }
+</style>
+<h2>Read - pagination</h2>
+<form action="" method="post" enctype="multipart/form-data">
+    <h2>Page Size</h2>
+    <input type="number" min="1" step="1" id="pageSizeForm" name="pageSize" />
+    <h2>Page Number</h2>
+    <input type="number" min="1" step="1" id="pageNumberForm" name="pageNumber" />
+    <input type="submit" id="submitbtn" />
+</form>
+<h2>Photos</h2>
 <p>
     @Html.ActionLink("Create New", "Create")
 </p>
@@ -23,23 +34,77 @@
         <th></th>
     </tr>
 
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Name)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Description)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Path)
-        </td>
-        <td>
-            @Html.ActionLink("Edit", "Edit", new { id=item.ID }) |
-            @Html.ActionLink("Details", "Details", new { id=item.ID }) |
-            @Html.ActionLink("Delete", "Delete", new { id=item.ID })
-        </td>
-    </tr>
-}
-
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Path)
+            </td>
+            <td>
+                @*@Html.ActionLink("Edit", "Edit", new { id = item.ID }) |
+                @Html.ActionLink("Details", "Details", new { id = item.ID }) |*@
+                @Html.ActionLink("Delete", "Delete", new { id = item.ID })
+            </td>
+        </tr>
+    }
 </table>
+<h2>Pages</h2>
+<p>
+    @for (int i = 1; i <= ViewBag.totalpages; i++)
+    {
+        <a href="@Url.Action("Pagination","Photos", new { PageSize = ViewBag.pagesize,PageNumber=i } )">@i</a>
+    }
+</p>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#submitbtn").click(function () {
+            var data = new FormData();
+            data.append("PageSize", $("#pageSizeForm").val());
+            data.appent("PageNumber", $("#pageNumberForm").val());
+            $.ajax({
+                url: 'Index',
+                type: "POST",
+                processData: false,
+                data: data,
+                dataType: 'json',
+                contentType: false,
+                success: function (response) {
+                    if (response != null || response != '')
+                        alert(response);
+                },
+                error: function (er) { }
+
+            });
+            return false;
+        });
+    });
+    
+</script>
+@*<script>
+        $(document).ready(function BtnClick(ps, pn) {
+            var data = new FormData();
+            data.append("PageSize", ps);
+            data.append("PageNumber", pn);
+            $.ajax({
+                url: 'Index',
+                type: "POST",
+                processData: false,
+                data: data,
+                dataType: 'json',
+                contentType: false,
+                success: function (response) {
+                    if (response != null || response != '')
+                        alert(response);
+                },
+                error: function (er) { }
+            });
+        });
+    </script>*@
